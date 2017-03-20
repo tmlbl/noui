@@ -1,0 +1,6 @@
+{
+  "name": "noui",
+  "short_name": "noui",
+  "start_url": "/",
+  "display": "standalone"
+}
