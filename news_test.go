@@ -7,9 +7,13 @@ import (
 	"testing"
 )
 
+var testConfig = Config{
+	HostName: "localhost",
+}
+
 func TestPostNews(t *testing.T) {
 	app := NewServer()
-	Serve()
+	dbconnect(testConfig)
 	req, _ := http.NewRequest(http.MethodPost, "/api/news",
 		bytes.NewBuffer([]byte("hunnunun")))
 	res := httptest.NewRecorder()

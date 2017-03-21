@@ -25,13 +25,17 @@ func NewServer() *gin.Engine {
 	return app
 }
 
-func serve(c Config) {
+func dbconnect(c Config) {
 	// Connect to mongodb.
 	sesh, err := mgo.Dial(c.HostName)
 	if err != nil {
 		panic(err)
 	}
 	conn = sesh
+}
+
+func serve(c Config) {
+	dbconnect(c)
 	app := NewServer()
 	app.Run("0.0.0.0:7070")
 }
