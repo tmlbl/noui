@@ -2,20 +2,30 @@ package noui
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-var testConfig = Config{
-	HostName: "localhost",
+func testConfig() Config {
+	return Config{
+		HostName: "localhost",
+	}
 }
 
-func makeTestRequest(body string) *http.Response {
+func makeTestRequest(method, path, body string) *http.Request {
+	c := testConfig()
+	c.DBName = "noui"
+	dbconnect(c)
+	req, _ := http.NewRequest(method, path, bytes.NewBuffer([]byte(body)))
+	return req
+}
+
+func execRequest(req *http.Request) *http.Response {
 	app := NewServer()
-	dbconnect(testConfig)
-	req, _ := http.NewRequest(http.MethodPost, "/api/news",
-		bytes.NewBuffer([]byte(body)))
 	res := httptest.NewRecorder()
 	app.ServeHTTP(res, req)
 	return res.Result()
@@ -27,7 +37,26 @@ func expectStatus(t *testing.T, r *http.Response, status int) {
 	}
 }
 
-func TestPostNews(t *testing.T) {
-	res := makeTestRequest("hunk")
+func TestBadJSON(t *testing.T) {
+	req := makeTestRequest("POST", "/api/news", "blablabla")
+	res := execRequest(req)
 	expectStatus(t, res, 400)
+}
+
+func TestPostNews(t *testing.T) {
+	news := News{
+		Namespace: "test_news",
+		Headline:  "A test news item",
+		Content:   "u already know",
+	}
+	js, _ := json.Marshal(news)
+	req := makeTestRequest("POST", "/api/news", string(js))
+	res := execRequest(req)
+	expectStatus(t, res, 200)
+
+	// Fetch the news collection
+	req = makeTestRequest("GET", "/api/news/test_news", "")
+	res = execRequest(req)
+	body, _ := ioutil.ReadAll(res.Body)
+	fmt.Println(string(body))
 }

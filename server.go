@@ -5,12 +5,13 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-var conn *mgo.Session
+var db *mgo.Database
 
 // Config is a container for the options available when starting the server.
 type Config struct {
 	Prefix   string
 	HostName string
+	DBName   string
 }
 
 type ErrorResponse struct {
@@ -20,6 +21,7 @@ type ErrorResponse struct {
 func NewServer() *gin.Engine {
 	app := gin.New()
 
+	app.GET("/api/news/:namespace", handleGetNews)
 	app.POST("/api/news", handlePostNews)
 
 	return app
@@ -31,7 +33,7 @@ func dbconnect(c Config) {
 	if err != nil {
 		panic(err)
 	}
-	conn = sesh
+	db = sesh.DB(c.DBName)
 }
 
 func serve(c Config) {
@@ -44,5 +46,6 @@ func serve(c Config) {
 func Serve() {
 	serve(Config{
 		HostName: "localhost",
+		DBName:   "noui",
 	})
 }

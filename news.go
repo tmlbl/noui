@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"gopkg.in/mgo.v2/bson"
+
 	"github.com/tmlbl/gin"
 )
 
@@ -14,9 +16,10 @@ const (
 // News represents an event in time that can be displayed in an activity feed
 // type interface.
 type News struct {
-	Time     time.Time
-	Headline string
-	Content  string
+	Namespace string    `json:"namespace"`
+	Time      time.Time `json:"time"`
+	Headline  string    `json:"headline"`
+	Content   string    `json:"content"`
 }
 
 func handlePostNews(c *gin.Context) {
@@ -28,6 +31,27 @@ func handlePostNews(c *gin.Context) {
 		return
 	}
 	fmt.Println(n)
-	conn.DB("noui").C("news").Insert(&n)
+	// If the time is null, fill in the current time as a default.
+	if n.Time.Equal(time.Time{}) {
+		n.Time = time.Now()
+	}
+	err = db.C("news").Insert(&n)
+	if err != nil {
+		c.JSON(400, ErrorResponse{err.Error()})
+		c.Abort()
+		return
+	}
 	c.Status(200)
+}
+
+func handleGetNews(c *gin.Context) {
+	namespace := c.Param("namespace")
+	n := []News{}
+	err := db.C("news").Find(bson.M{"namespace": namespace}).All(&n)
+	if err != nil {
+		c.JSON(400, ErrorResponse{err.Error()})
+		c.Abort()
+		return
+	}
+	c.JSON(200, &n)
 }
