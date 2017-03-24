@@ -52,7 +52,7 @@ func handleGetNews(c *gin.Context) {
 	namespace := c.Param("namespace")
 	n := []News{}
 	err := db.C(newsCollection).Find(bson.M{
-		"namespace": namespace,
+		"model.namespace": namespace,
 	}).Sort("time -1").All(&n)
 	if err != nil {
 		c.JSON(400, ErrorResponse{err.Error()})
