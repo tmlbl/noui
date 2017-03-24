@@ -1,7 +1,6 @@
 package noui
 
 import (
-	"fmt"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"
@@ -10,16 +9,22 @@ import (
 )
 
 const (
-	errBadJSON = "JSON body is malformed"
+	newsCollection = "news"
+	errBadJSON     = "JSON body is malformed"
 )
+
+type Model struct {
+	Namespace string   `json:"namespace"`
+	Roles     []string `json:"roles"`
+}
 
 // News represents an event in time that can be displayed in an activity feed
 // type interface.
 type News struct {
-	Namespace string    `json:"namespace"`
-	Time      time.Time `json:"time"`
-	Headline  string    `json:"headline"`
-	Content   string    `json:"content"`
+	Model
+	Time     time.Time `json:"time"`
+	Headline string    `json:"headline"`
+	Content  string    `json:"content"`
 }
 
 func handlePostNews(c *gin.Context) {
@@ -30,12 +35,11 @@ func handlePostNews(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	fmt.Println(n)
 	// If the time is null, fill in the current time as a default.
 	if n.Time.Equal(time.Time{}) {
 		n.Time = time.Now()
 	}
-	err = db.C("news").Insert(&n)
+	err = db.C(newsCollection).Insert(&n)
 	if err != nil {
 		c.JSON(400, ErrorResponse{err.Error()})
 		c.Abort()
@@ -47,7 +51,9 @@ func handlePostNews(c *gin.Context) {
 func handleGetNews(c *gin.Context) {
 	namespace := c.Param("namespace")
 	n := []News{}
-	err := db.C("news").Find(bson.M{"namespace": namespace}).All(&n)
+	err := db.C(newsCollection).Find(bson.M{
+		"namespace": namespace,
+	}).Sort("time -1").All(&n)
 	if err != nil {
 		c.JSON(400, ErrorResponse{err.Error()})
 		c.Abort()

@@ -3,8 +3,6 @@ package noui
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -45,9 +43,11 @@ func TestBadJSON(t *testing.T) {
 
 func TestPostNews(t *testing.T) {
 	news := News{
-		Namespace: "test_news",
-		Headline:  "A test news item",
-		Content:   "u already know",
+		Model: Model{
+			Namespace: "test_news",
+		},
+		Headline: "A test news item",
+		Content:  "u already know",
 	}
 	js, _ := json.Marshal(news)
 	req := makeTestRequest("POST", "/api/news", string(js))
@@ -57,6 +57,4 @@ func TestPostNews(t *testing.T) {
 	// Fetch the news collection
 	req = makeTestRequest("GET", "/api/news/test_news", "")
 	res = execRequest(req)
-	body, _ := ioutil.ReadAll(res.Body)
-	fmt.Println(string(body))
 }
