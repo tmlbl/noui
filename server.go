@@ -21,8 +21,8 @@ type ErrorResponse struct {
 func NewServer() *gin.Engine {
 	app := gin.New()
 
-	app.GET("/api/news/:namespace", handleGetNews)
-	app.POST("/api/news", handlePostNews)
+	app.GET("/news/:namespace", handleGetNews)
+	app.POST("/news", handlePostNews)
 
 	return app
 }
