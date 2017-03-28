@@ -36,7 +36,7 @@ func expectStatus(t *testing.T, r *http.Response, status int) {
 }
 
 func TestBadJSON(t *testing.T) {
-	req := makeTestRequest("POST", "/api/news", "blablabla")
+	req := makeTestRequest("POST", "/news", "blablabla")
 	res := execRequest(req)
 	expectStatus(t, res, 400)
 }
@@ -50,11 +50,11 @@ func TestPostNews(t *testing.T) {
 		Content:  "u already know",
 	}
 	js, _ := json.Marshal(news)
-	req := makeTestRequest("POST", "/api/news", string(js))
+	req := makeTestRequest("POST", "/news", string(js))
 	res := execRequest(req)
 	expectStatus(t, res, 200)
 
 	// Fetch the news collection
-	req = makeTestRequest("GET", "/api/news/test_news", "")
+	req = makeTestRequest("GET", "/news/test_news", "")
 	res = execRequest(req)
 }
